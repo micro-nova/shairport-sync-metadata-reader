@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include <stdlib.h>
 #include <arpa/inet.h>
 
+#define MAX_PAYLOAD (1024*1024)
 
 // From Stack Overflow, with thanks:
 // http://stackoverflow.com/questions/342409/how-do-i-base64-encode-decode-in-c
@@ -150,7 +151,7 @@ int main(void) {
         // now, think about processing the tag.
         // basically, we need to get hold of the base-64 data, if any
         size_t outputlength=0;
-        char payload[1000000];
+        char payload[MAX_PAYLOAD+1];
         if (length>0) {
           // get the next line, which should be a data tag
           char datatagstart[64],datatagend[64];
@@ -170,10 +171,10 @@ int main(void) {
                 //printf("\n");
                 // now, if it's not a picture, let's try to decode it.
                 //if (code!='PICT') {
-                  int inputlength=999999;
+                  int inputlength=MAX_PAYLOAD;
                   if (b64size<inputlength)
                     inputlength=b64size;
-                  outputlength=999999;
+                  outputlength=MAX_PAYLOAD;
                   if (base64_decode(b64buf,inputlength,payload,&outputlength)!=0) {
                     printf("Failed to decode it.\n");
                   }
@@ -252,6 +253,7 @@ int main(void) {
             printf("Sort as: \"%s\".\n",payload);
             break;
           case 'PICT':
+            // TODO: remove old pictures
             printf("Image length: \"%u\".\n",length);
             imgincr+=1;
             char charint[17];
