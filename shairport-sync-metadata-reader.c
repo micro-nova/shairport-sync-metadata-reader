@@ -138,6 +138,7 @@ int main(void) {
   fd_set rfds;
   int retval;
   int imgincr=0;
+  char namechar = 'A';
 
   initialise_decoding_table();
   FILE *img;
@@ -253,11 +254,33 @@ int main(void) {
             printf("Sort as: \"%s\".\n",payload);
             break;
           case 'PICT':
-            // TODO: remove old pictures
             printf("Image length: \"%u\".\n",length);
             imgincr+=1;
             char charint[17];
-            snprintf(charint, 17, "IMG_A%d", imgincr);
+            char command[50];
+            // Names the image, writes the file, and deletes older images.
+            switch(namechar){
+              case 'A' :
+                snprintf(charint, 17, "IMG_A%d", imgincr);
+                namechar = 'B';
+                strcpy(command, "rm -f IMG_B*");
+                system(command);
+                break;
+              case 'B' :
+                snprintf(charint, 17, "IMG_B%d", imgincr);
+                namechar = 'C';
+                strcpy(command, "rm -f IMG_C*");
+                system(command);
+                break;
+              case 'C' :
+                snprintf(charint, 17, "IMG_C%d", imgincr);
+                namechar = 'A';
+                strcpy(command, "rm -f IMG_A*");
+                system(command);
+                break;
+              default :
+                namechar = 'A';
+            }
             img = fopen(charint, "w");
             fwrite(payload, length, 1, img);
             fclose(img);
