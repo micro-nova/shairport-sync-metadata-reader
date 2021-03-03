@@ -259,17 +259,14 @@ int main(void) {
             char charint[17];
             char command[50];
             // Names the image, writes the file, and deletes older images.
+            snprintf(charint, 17, "IMG_%c%d", namechar, imgincr);
             if (namechar > 'B'){
-              snprintf(charint, 17, "IMG_%c%d", namechar, imgincr);
               namechar = 'A';
-              snprintf(command, 50, "rm -f IMG_%c*", namechar);
-              system(command);
             } else{
-              snprintf(charint, 17, "IMG_%c%d", namechar, imgincr);
               namechar++;
-              snprintf(command, 50, "rm -f IMG_%c*", namechar);
-              system(command);
             }
+            snprintf(command, 50, "rm -f IMG_%c*", namechar);
+            system(command);
             img = fopen(charint, "w");
             fwrite(payload, length, 1, img);
             fclose(img);
