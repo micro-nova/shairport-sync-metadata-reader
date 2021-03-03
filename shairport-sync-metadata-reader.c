@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include <stdlib.h>
 #include <arpa/inet.h>
 
+#define MAX_PAYLOAD (1024*1024)
 
 // From Stack Overflow, with thanks:
 // http://stackoverflow.com/questions/342409/how-do-i-base64-encode-decode-in-c
@@ -136,9 +137,11 @@ int base64_decode(const char *data,
 int main(void) {
   fd_set rfds;
   int retval;
+  int imgincr=0;
+  char namechar = 'A';
 
   initialise_decoding_table();
-
+  FILE *img;
   while (1) {
     char str[1025];
     if (fgets (str, 1024, stdin)) {
@@ -149,7 +152,7 @@ int main(void) {
         // now, think about processing the tag.
         // basically, we need to get hold of the base-64 data, if any
         size_t outputlength=0;
-        char payload[32769];
+        char payload[MAX_PAYLOAD+1];
         if (length>0) {
           // get the next line, which should be a data tag
           char datatagstart[64],datatagend[64];
@@ -168,15 +171,15 @@ int main(void) {
                 //puts(b64buf);
                 //printf("\n");
                 // now, if it's not a picture, let's try to decode it.
-                if (code!='PICT') {
-                  int inputlength=32768;
+                //if (code!='PICT') {
+                  int inputlength=MAX_PAYLOAD;
                   if (b64size<inputlength)
                     inputlength=b64size;
-                  outputlength=32768;
+                  outputlength=MAX_PAYLOAD;
                   if (base64_decode(b64buf,inputlength,payload,&outputlength)!=0) {
                     printf("Failed to decode it.\n");
                   }
-                }
+                //}
               }
               free(b64buf);
             } else {
@@ -251,7 +254,23 @@ int main(void) {
             printf("Sort as: \"%s\".\n",payload);
             break;
           case 'PICT':
-            printf("Picture received, length %u bytes.\n",length);
+            printf("Image length: \"%u\".\n",length);
+            imgincr+=1;
+            char charint[17];
+            char command[50];
+            // Names the image, writes the file, and deletes older images.
+            snprintf(charint, 17, "IMG_%c%d", namechar, imgincr);
+            if (namechar > 'B'){
+              namechar = 'A';
+            } else{
+              namechar++;
+            }
+            snprintf(command, 50, "rm -f IMG_%c*", namechar);
+            system(command);
+            img = fopen(charint, "w");
+            fwrite(payload, length, 1, img);
+            fclose(img);
+            printf("Image name: \"%s\".\n",charint);
             break;
           case 'clip':
             printf("Client's IP: \"%s\".\n",payload);
